@@ -61,9 +61,6 @@ window.addEventListener('load', function() {
     // このファイルの上部に定義した関数を使うと便利。
     arcAngles([350, 125], 30, 0, Math.PI * 0.5);
 
-    // 画面を描く。
-    view.draw();
-
     // 多角形 : 中心の座標, 辺の数, 半径
     let regularPoly = Path.RegularPolygon([100, 250], 6, 50);
 
@@ -73,4 +70,7 @@ window.addEventListener('load', function() {
     // 多角形や星の向きはこう変えられる。
     regularPoly.rotate(45);
     star.rotate(90);
+
+    // 画面を描く。
+    view.draw();
 });
