@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="style.css">
+
+        <!-- Paper.jsを読み込む：http://paperjs.org/ 
+             多少ファイルサイズが大きいので、オンラインのライブラリ提供サービスからダウンロードする。
+             そうすることによって、2回目使う時以降、ブラウザがキャッシュから読み込んで、
+             ページロードが軽くなる。
+        -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.15/paper-full.min.js" integrity="sha512-ovjLI1ZcZe6bw+ImQ21r+sv8q/Vwob2kq7tFidK6E1LWfi0T4uobbmpfEU1//a9h9o5Kkt+MnMWf6rWlg0EiMw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+        <!-- 画像をダウンロードするためのライブラリを読み込む：https://github.com/eligrey/FileSaver.js/ -->
+        <script src="FileSaver.min.js"></script>
+    </head>
+
+    <body>
+        <!-- ヘッダーにスケッチ名の編集と画像ダウンロードボタンを表示する。 -->
+        <header>
+            <!-- ここはスケッチ名 -->
+            <div id="sketch-name">
+                <!-- ボタンと入力フィールドを両方準備するが、CSSで片方だけを表示する。JavaScriptで切り替える。 -->
+                <button id="sketch-name-edit">
+                    <span id="sketch-name-label">MySketch</span>
+                    <!-- 鉛筆アイコン 出典：https://heroicons.dev -->
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                </button>
+
+                <input type="text" maxlength="128" name="sketch-name" id="sketch-name-input" value="MySketch">
+            </div>
+
+            <!-- ここはダウンロード -->
+            <div id="sketch-export">
+                <button id="sketch-img-export">
+                    <!-- ダウンロードアイコン 出典：https://heroicons.dev -->
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- スケッチはこの中に表示される。 -->
+        <div id="container">
+            <canvas id="paper-canvas"></canvas>
+        </div>
+    </body>
+
+    <!-- HTMLが全て読み込まれた時点でスケッチのJavaScriptを読み込む。これが自分で編集するファイルになる。
+         複数のファイルに分けてより複雑なスクリプトを書きたい場合、ここに追加する。 -->
+    <script src="sketch.js"></script>
+
+    <!-- 以下のスクリプトはスケッチ名の編集と画像の書き出しを実装する。 -->
+    <script>
+        // 最初はPaper.jsの必要な準備を行う。
+        let canvas = document.getElementById('paper-canvas');
+        paper.install(window);
+        paper.setup(canvas);
+
+        // HTML要素への参照を取得する。
+        let sketchNameSpan = document.getElementById('sketch-name-label');
+        let sketchNameTextInput = document.getElementById('sketch-name-input');
+        let sketchNameButton = document.getElementById('sketch-name-edit');
+        let sketchExportButton = document.getElementById('sketch-img-export');
+
+        // スケッチのスクリプトでスケッチ名を指定した場合、表示を更新する。
+        if (sketchName) {
+            // ちなみに、JavaScriptでは空の文字列をif文に渡すとfalseとして解釈されるので、
+            // ここは空のファイル名が入力できない一石二鳥の確認になっている。
+            sketchNameSpan.textContent = sketchName;
+        }
+
+        // デフォルトのスケッチ名を記憶する。
+        let defaultName = sketchNameSpan.textContent;
+
+        // スケッチ名の編集要素の表示を切り替える関数
+        function hideNameInput(e) {
+            // 入力フィールドを非表示にして、ボタンを表示する。
+            sketchNameTextInput.style.display = 'none';
+            sketchNameButton.style.display = 'block';
+
+            // もし入力されたスケッチ名が空なら、デフォルトに戻す。
+            if (!sketchNameSpan.textContent) {
+                 sketchNameSpan.textContent = defaultName;
+            }
+        }
+
+        function showNameInput(e) {
+            // 編集前のスケッチ名を記憶する。
+            defaultName = sketchNameSpan.textContent;
+
+            // 編集する文字列を更新する。
+            sketchNameTextInput.value = defaultName;
+
+            // 入力フィールドを表示にして、ボタンを非表示にする。
+            sketchNameTextInput.style.display = 'block';
+            sketchNameButton.style.display = 'none';
+
+            // すぐに文字を打てるように入力フィールドにフォーカスを当てる。
+            sketchNameTextInput.focus();
+        }
+        
+        // 文字が入力フィールドに入力されるたびにスケッチ名の表示を更新する。
+        sketchNameTextInput.addEventListener('input', function(e){
+            if (e.target.value) {
+                sketchNameSpan.textContent = e.target.value;
+                sketchName = e.target.value;
+            }
+        });
+
+        // 編集ボタンを押したら表示を切り替える。
+        sketchNameButton.addEventListener('click', showNameInput);
+
+        // 入力が決定した時、ユーザーがフィールドの外をクリックしたりした時、表示を切り替える。
+        sketchNameTextInput.addEventListener('change', hideNameInput);
+        sketchNameTextInput.addEventListener('focusout', hideNameInput);
+
+        // ユーザーがエンターキーを押した時も表示を切り替える。全ての入力を検証する。
+        sketchNameTextInput.addEventListener('keyup', function(e){
+            // エンターキーのキーコードは13
+            if (e.keyCode === 13) {
+                hideNameInput(e);
+            }
+        });
+
+        // スケッチを画像としてダウンロードする関数
+        function downloadImage(e) {
+            if (project) {
+                // Paper.jsにSVGを書き出してもらう。SVGはそのままHTML要素（DOM要素）として
+                // 使う事ができるので、「domElement」という変数名を付けておく。
+                let domElement =  project.exportSVG({matchShape:true});
+
+                // SVG画像は、HTMLのようなコードでできている。独立したファイルにしたい場合、その文字列の頭に「XML宣言」という記述を付け加える必要がある。
+                let svgCode = `<?xml version="1.0" encoding="utf-8"?>\n${domElement.outerHTML}`;
+                    // 保存するデータ（blob）を取得する。
+                    let blob = new Blob([svgCode], {type:"image/svg+xml;charset=utf-8"});
+                    // ファイルを保存する。「saveAs」関数はFileSaverライブラリに定義・実装されている。
+                    saveAs(blob, sketchName + ".svg");
+            }
+        }
+
+        // 忘れずに、最後にダウンロードボタンが押された時に上記の関数を呼び出されるように指定する。
+        sketchExportButton.addEventListener('click', downloadImage);
+
+    </script>
+</html>
