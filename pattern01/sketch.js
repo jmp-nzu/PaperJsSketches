@@ -7,7 +7,7 @@ window.addEventListener('load', function(){
     // キャンバスの大きさを指定する。
     view.viewSize = new Size(500, 500);
 
-    let backgroundColor = new Color('#fcecc9');
+    let backgroundColor = new Color('#c9e1fc');
     let lineColor1 = new Color('#445E93');
     let lineColor2 = new Color('#7EB2DD');
 
