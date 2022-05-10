@@ -9,39 +9,25 @@ window.addEventListener('load', function(){
 
     project.currentStyle = {
         strokeColor: '#A44A3F', // 線の色
-        fillColor: null, // 塗りの色
-        strokeWidth: 0.1 // 線の幅
+        fillColor: '#FFFFFF', // 塗りの色
+        strokeWidth: 0.5 // 線の幅
     };
 
     let x = view.viewSize.width * 0.5;
     let y = view.viewSize.height * 0.5;
 
-    let count = 1000;
-    let angle = Math.PI * 0.1;
-    let length = 1;
-    let dl = 0.1;
-    let randomRange = 2;
-
-
-    let points = [];
-    let theta = Math.PI * 0.25;
+    let count = 200;
+    let length = 5;
+    let angle = 5; // PaperJSはラジアンではなく度です！
+    let theta = 0;
 
     for (let i = 0; i < count; i++) {
-        points.push([x, y]);
-
-        let rand_x = Math.random() * randomRange - randomRange * 0.5;
-        let rand_y = Math.random() * randomRange - randomRange * 0.5;
-
-        x += Math.cos(theta) * length + rand_x;
-        y += Math.sin(theta) * length + rand_y;
-
-        angle += Math.PI * 0.0001;
+        let p = Path.Circle([x + length, y], 50);
+        p.rotate(theta, [x, y]);
         theta += angle;
-        length += dl;
+        length += 1;
     }
 
-    let p = new Path(points);
-    p.closed = false;
 
     // 画面を描く。
     view.draw();
